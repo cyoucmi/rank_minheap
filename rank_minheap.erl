@@ -71,8 +71,8 @@ swap_down_1({_KeyTop, _, UniqueIdTop} = Top, {KeyLeft, _, _}, {KeyRight, _, Uniq
 swap_down_1({_KeyTop, _, UniqueIdTop} = Top, {_KeyLeft, _, UniqueIdLeft}=Left, {_KeyRight, _, _}, Index, G, CurH, H, Tuple)->
     Tuple1 = setelement(Index, Tuple, Left),
     Tuple2 = setelement(2*Index, Tuple1, Top),
-    G1 = gb_trees:enter({unique_id, UniqueIdTop}, 2*Index, G),
-    G2 = gb_trees:enter({unique_id, UniqueIdLeft}, Index, G1),
+    G1 = enter_unique_id(UniqueIdTop, 2*Index, G),
+    G2 = enter_unique_id(UniqueIdLeft, Index, G1),
     swap_down(G2, 2*Index, CurH + 1, H, Tuple2).
 
 
