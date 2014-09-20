@@ -11,12 +11,9 @@
 
 -define(MAX_INDEX(H), (2 bsl (H-1) - 1)).
 
--include("common.hrl").
-
 new(H)->
     G = gb_trees:empty(),
     IndexSize = ?MAX_INDEX(H),
-    ?DBG(IndexSize),
     Tuple = list_to_tuple(lists:duplicate(IndexSize, {0, 0, 0})),
     {H, G, Tuple}.
 
