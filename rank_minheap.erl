@@ -9,7 +9,7 @@
 -module(rank_minheap).
 -export([new/1, insert/4, to_list/1, to_sort_list/1]).
 
--define(MAX_INDEX(H), (2 bsl (H-1) - 1)).
+-define(MAX_INDEX(H), (1 bsl H - 1)).
 
 new(H)->
     G = gb_trees:empty(),
@@ -95,7 +95,7 @@ swap_up_1(G, {_, _, UniqueIdCur} = Cur, {_, _, UniqueIdTop} = Top, Index, TopInd
     swap_up(G2, TopIndex, H, Tuple2).
 
 get_index_high(Index, CurH)->
-    case (2 bsl (CurH - 2)) =< Index andalso (Index < (2 bsl (CurH-1))) of
+    case (1 bsl (CurH - 1)) =< Index andalso (Index < (1 bsl CurH)) of
         true ->
             CurH;
         false->
