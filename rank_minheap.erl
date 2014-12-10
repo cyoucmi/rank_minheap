@@ -26,25 +26,54 @@ insert(Key, Value, UniqueId, Heap)->
 insert_1(Key, _, _, G, {HeapTopKey, _, _}, H, Tuple) when HeapTopKey >= Key ->
     {H, G, Tuple};
 
-insert_1(Key, Value, UniqueId, G, {_HeapTopKey, _HeapTopValue, HeapTopUniqueId}, H, Tuple)->
-    Index = case gb_trees:lookup({unique_id, UniqueId}, G) of
+insert_1(Key, Value, UniqueId, G, HeapElem, H, Tuple)->
+    case gb_trees:lookup({unique_id, UniqueId}, G) of
         %% new  swap with heap top
         none ->
-            1;
-        {value, Index0} ->
-            Index0
-    end,
+            Index = 1,
+            insert_2(Key, Value, UniqueId, G, Index, HeapElem, H, Tuple);
+        {value, Index} ->
+            Elem = element(Index, Tuple),
+            {Key1, _, _} = Elem,
+            if
+                Key1 < Key ->
+                    insert_2(Key, Value, UniqueId, G, Index, HeapElem, H, Tuple);
+                true ->
+                    {H, G, Tuple}
+            end
+    end.
+
+
+insert_2(Key, Value, UniqueId, G, Index, {_HeapTopKey, _HeapTopValue, HeapTopUniqueId}, H, Tuple)->
     G1 = if Index =:= 1 andalso HeapTopUniqueId =/= 0 -> gb_trees:delete({unique_id, HeapTopUniqueId}, G); true -> G end,
-    MaxIndex = ?MAX_INDEX(H),
+    MaxIndex = minimum_child(H, Index),
     Last = element(MaxIndex, Tuple),
     {_, _, UniqueLast} = Last,
     G2 = enter_unique_id(UniqueId, MaxIndex, G1),
     G3 = enter_unique_id(UniqueLast, Index, G2),
     Tuple1 = setelement(MaxIndex, Tuple, {Key, Value, UniqueId}),
-    Tuple2 = setelement(Index, Tuple1, Last), 
+    Tuple2 = if 
+        MaxIndex =:= Index -> %% same index (not need set)
+            Tuple1; 
+        true -> 
+            setelement(Index, Tuple1, Last) 
+    end,
     IndexH = get_index_high(Index, 1),
     {_, G4, Tuple3} = swap_down(G3, Index, IndexH, H, Tuple2),
     swap_up(G4, MaxIndex, H, Tuple3).
+
+minimum_child(H, Index)->
+    MaxIndex = ?MAX_INDEX(H),
+    minimum_child_1(MaxIndex, Index).
+
+minimum_child_1(MaxIndex, Index)->
+    RightChild = Index * 2 + 1,
+    if
+        RightChild > MaxIndex ->
+            Index;
+        true->
+            minimum_child_1(MaxIndex, RightChild)
+    end.
 
 
 swap_down(G, Index, CurH, H, Tuple) when CurH < H ->
